@@ -49,6 +49,9 @@ namespace ProceduralModeling {
 			mesh.normals = normals;
 			mesh.triangles = triangles;
 
+			// Meshが占める境界領域を計算する（cullingに必要）
+			mesh.RecalculateBounds();
+
 			return mesh;
 		}
 
