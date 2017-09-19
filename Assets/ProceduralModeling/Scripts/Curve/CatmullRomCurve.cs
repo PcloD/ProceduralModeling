@@ -25,7 +25,7 @@ namespace ProceduralModeling {
 	}
 
 	[CreateAssetMenu(fileName = "CatmullRomCurve", menuName = "CatmullRomCurve")]
-    public class CatmullRomCurve : Curve {
+    public class CatmullRomCurve : CurveBase {
 
         protected override Vector3 GetPoint(float t) {
             var points = this.points;

@@ -6,7 +6,9 @@ namespace ProceduralModeling {
 
 	public class Tubular : ProceduralModelingBase {
 
-		[SerializeField] protected Curve curve;
+		// CurveBaseはScriptableObjectであるため、asset化したものを指定する
+		[SerializeField] protected CurveBase curve;
+
 		[SerializeField, Range(2, 50)] protected int tubularSegments = 20, radialSegments = 8;
 		[SerializeField, Range(0.1f, 5f)] protected float radius = 0.5f;
 		[SerializeField] protected bool closed = false;
@@ -18,19 +20,23 @@ namespace ProceduralModeling {
 			var normals = new List<Vector3>();
 			var tangents = new List<Vector4>();
 			var uvs = new List<Vector2>();
-			var indices = new List<int>();
+			var triangles = new List<int>();
 
 			if(curve == null) {
 				return new Mesh();
 			}
 
+			// 曲線からFrenet frameを取得
 			var frames = curve.ComputeFrenetFrames(tubularSegments, closed);
 
+			// Tubularの頂点データを生成
 			for(int i = 0; i < tubularSegments; i++) {
-				GenerateSegment(curve, frames, tubularSegments, radius, radialSegments, vertices, normals, tangents, i);
+				GenerateSegment(curve, frames, vertices, normals, tangents, i);
 			}
-			GenerateSegment(curve, frames, tubularSegments, radius, radialSegments, vertices, normals, tangents, (!closed) ? tubularSegments : 0);
+			// 閉じた筒型を生成する場合は曲線の始点に最後の頂点を配置し、閉じない場合は曲線の終点に配置する
+			GenerateSegment(curve, frames, vertices, normals, tangents, (!closed) ? tubularSegments : 0);
 
+			// 曲線の始点から終点に向かってuv座標を設定していく
 			for (int i = 0; i <= tubularSegments; i++) {
 				for (int j = 0; j <= radialSegments; j++) {
 					float u = 1f * j / radialSegments;
@@ -39,6 +45,7 @@ namespace ProceduralModeling {
 				}
 			}
 
+			// 側面を構築
 			for (int j = 1; j <= tubularSegments; j++) {
 				for (int i = 1; i <= radialSegments; i++) {
 					int a = (radialSegments + 1) * (j - 1) + (i - 1);
@@ -46,9 +53,8 @@ namespace ProceduralModeling {
 					int c = (radialSegments + 1) * j + i;
 					int d = (radialSegments + 1) * (j - 1) + i;
 
-					// faces
-					indices.Add(a); indices.Add(d); indices.Add(b);
-					indices.Add(b); indices.Add(d); indices.Add(c);
+					triangles.Add(a); triangles.Add(d); triangles.Add(b);
+					triangles.Add(b); triangles.Add(d); triangles.Add(c);
 				}
 			}
 
@@ -57,34 +63,27 @@ namespace ProceduralModeling {
 			mesh.normals = normals.ToArray();
 			mesh.tangents = tangents.ToArray();
 			mesh.uv = uvs.ToArray();
-			mesh.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
+			mesh.triangles = triangles.ToArray();
 			return mesh;
 		}
 
-		static void GenerateSegment(
-			Curve curve, 
-			List<FrenetFrame> frames, 
-			int tubularSegments, 
-			float radius, 
-			int radialSegments, 
-			List<Vector3> vertices, 
-			List<Vector3> normals, 
-			List<Vector4> tangents, 
-			int i
-		) {
-			var u = 1f * i / tubularSegments;
+		void GenerateSegment(CurveBase curve, List<FrenetFrame> frames, List<Vector3> vertices, List<Vector3> normals, List<Vector4> tangents, int index) {
+			// 0.0 ~ 1.0
+			var u = 1f * index / tubularSegments;
+
 			var p = curve.GetPointAt(u);
-			var fr = frames[i];
+			var fr = frames[index];
 
 			var N = fr.Normal;
 			var B = fr.Binormal;
 
 			for(int j = 0; j <= radialSegments; j++) {
-				float v = 1f * j / radialSegments * PI2;
-				var sin = Mathf.Sin(v);
-				var cos = Mathf.Cos(v);
+				// 0.0 ~ 2π
+				float rad = 1f * j / radialSegments * PI2;
 
-				Vector3 normal = (cos * N + sin * B).normalized;
+				// 円周に沿って均等に頂点を配置する
+				float cos = Mathf.Cos(rad), sin = Mathf.Sin(rad);
+				var normal = (cos * N + sin * B).normalized;
 				vertices.Add(p + radius * normal);
 				normals.Add(normal);
 

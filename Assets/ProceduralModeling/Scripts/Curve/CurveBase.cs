@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace ProceduralModeling {
 
-    public abstract class Curve : ScriptableObject {
+    public abstract class CurveBase : ScriptableObject {
 
 		[SerializeField] protected List<Vector3> points = new List<Vector3>() { Vector3.zero, Vector3.right, Vector3.up, Vector3.left };
         [SerializeField] protected bool closed = false;
