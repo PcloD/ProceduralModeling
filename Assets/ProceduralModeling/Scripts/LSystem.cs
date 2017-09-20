@@ -9,7 +9,7 @@ namespace ProceduralModeling {
 		[SerializeField] Color color = Color.black;
 		[SerializeField, Range(1, 8)] protected int depth = 5;
 		[SerializeField, Range(1f, 5f)] protected float length = 2f;
-		[SerializeField, Range(0.5f, 0.9f)] protected float decay = 0.8f;
+		[SerializeField, Range(0.5f, 0.9f)] protected float attenuation = 0.635f;
 		[SerializeField, Range(0f, 90f)] protected float angle = 20f;
 
 		Material lineMat;
@@ -40,12 +40,12 @@ namespace ProceduralModeling {
 
 			GL.PushMatrix();
 			var ml = current * Matrix4x4.TRS(new Vector3(0f, length, 0f), Quaternion.AngleAxis(-angle, Vector3.forward), Vector3.one);
-			DrawFractal(ml, depth - 1, length * decay);
+			DrawFractal(ml, depth - 1, length * attenuation);
 			GL.PopMatrix();
 
 			GL.PushMatrix();
 			var mr = current * Matrix4x4.TRS(new Vector3(0f, length, 0f), Quaternion.AngleAxis(angle, Vector3.forward), Vector3.one);
-			DrawFractal(mr, depth - 1, length * decay);
+			DrawFractal(mr, depth - 1, length * attenuation);
 			GL.PopMatrix();
 		}
 

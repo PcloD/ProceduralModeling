@@ -8,6 +8,8 @@ namespace ProceduralModeling {
 
     public abstract class CurveBase : ScriptableObject {
 
+		public List<Vector3> Points { get { return points; } }
+
 		[SerializeField] protected List<Vector3> points = new List<Vector3>() { Vector3.zero, Vector3.right, Vector3.up, Vector3.left };
         [SerializeField] protected bool closed = false;
 
@@ -114,29 +116,14 @@ namespace ProceduralModeling {
             return t;
         }
 
-        public List<FrenetFrame> ComputeFrenetFrames (int segments, bool closed) {
+        public List<FrenetFrame> ComputeFrenetFrames (int segments, bool closed = false) {
+            var tangent = GetTangentAt(0f).normalized;
+            var tx = Mathf.Abs(tangent.x);
+            var ty = Mathf.Abs(tangent.y);
+            var tz = Mathf.Abs(tangent.z);
+
             var normal = new Vector3();
-
-            var tangents = new Vector3[segments + 1];
-            var normals = new Vector3[segments + 1];
-            var binormals = new Vector3[segments + 1];
-
-            var mat = new Matrix4x4();
-
-            float u, theta;
-
-            for (int i = 0; i <= segments; i++) {
-                u = (1f * i) / segments;
-                tangents[i] = GetTangentAt(u).normalized;
-            }
-
-            normals[0] = new Vector3();
-            binormals[0] = new Vector3();
-
             var min = float.MaxValue;
-            var tx = Mathf.Abs(tangents[0].x);
-            var ty = Mathf.Abs(tangents[0].y);
-            var tz = Mathf.Abs(tangents[0].z);
             if (tx <= min) {
                 min = tx;
                 normal.Set(1, 0, 0);
@@ -149,9 +136,26 @@ namespace ProceduralModeling {
                 normal.Set(0, 0, 1);
             }
 
-            var vec = Vector3.Cross(tangents[0], normal).normalized;
-            normals[0] = Vector3.Cross(tangents[0], vec);
-            binormals[0] = Vector3.Cross(tangents[0], normals[0]);
+            var vec = Vector3.Cross(tangent, normal).normalized;
+            normal = Vector3.Cross(tangent, vec);
+            var binormal = Vector3.Cross(tangent, normal);
+			return ComputeFrenetFrames(segments, normal, binormal, closed);
+        }
+
+		public List<FrenetFrame> ComputeFrenetFrames(int segments, Vector3 normal, Vector3 binormal, bool closed = false) {
+            var tangents = new Vector3[segments + 1];
+            var normals = new Vector3[segments + 1];
+            var binormals = new Vector3[segments + 1];
+
+            for (int i = 0; i <= segments; i++) {
+                var u = (1f * i) / segments;
+                tangents[i] = GetTangentAt(u).normalized;
+            }
+
+			normals[0] = normal;
+			binormals[0] = binormal;
+
+            float theta;
 
             for (int i = 1; i <= segments; i++) {
                 // copy previous
@@ -193,7 +197,7 @@ namespace ProceduralModeling {
                 frames.Add(frame);
             }
             return frames;
-        }
+		}
 
     }
 

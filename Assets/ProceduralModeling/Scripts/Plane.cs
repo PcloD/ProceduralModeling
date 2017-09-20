@@ -19,9 +19,6 @@ namespace ProceduralModeling {
 			var uv = new Vector2[heightSegments * widthSegments];
 			var normals = new Vector3[heightSegments * widthSegments];
 
-			var hwidth = width * 0.5f; 
-			var hheight = height * 0.5f; 
-
 			// 頂点のグリッド上での位置の割合(0.0 ~ 1.0)を算出するための行列数の逆数
 			var winv = 1f / (widthSegments - 1);
 			var hinv = 1f / (heightSegments - 1);

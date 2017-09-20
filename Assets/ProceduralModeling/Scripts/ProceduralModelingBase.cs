@@ -53,7 +53,7 @@ namespace ProceduralModeling {
 			Renderer.sharedMaterial = LoadMaterial(materialType);
 		}
 
-		protected Material LoadMaterial(ProceduralModelingMaterial type) {
+		protected virtual Material LoadMaterial(ProceduralModelingMaterial type) {
 			switch(type) {
 			case ProceduralModelingMaterial.UV:
 				return Resources.Load<Material>("Materials/UV");
