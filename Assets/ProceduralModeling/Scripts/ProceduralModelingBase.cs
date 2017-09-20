@@ -41,7 +41,7 @@ namespace ProceduralModeling {
 			Rebuild();
 		}
 
-		protected void Rebuild() {
+		public void Rebuild() {
 			if(Filter.sharedMesh != null) {
 				if(Application.isPlaying) {
 					Destroy(Filter.sharedMesh);
@@ -64,10 +64,6 @@ namespace ProceduralModeling {
 		}
 
 		protected abstract Mesh Build();
-
-		protected virtual void OnValidate() {
-			Rebuild();
-		}
 
 	}
 		
